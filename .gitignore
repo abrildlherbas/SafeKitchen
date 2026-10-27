@@ -14,3 +14,11 @@ __v0_jsx-dev-runtime.ts
 node_modules
 .next/
 .DS_Store
+
+# PocketBase database y datos locales
+/pb_data/
+pb_data/
+
+# Si PocketBase está instalado dentro del repositorio, puedes ignorar el binario
+/pocketbase
+pocketbase.exe
