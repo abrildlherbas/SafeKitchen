@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { pocketbase, POCKETBASE_URL } from '@/lib/pocketbase'
+import { useMQTT } from '@/hooks/useMQTT'
 
 type MonitorState = 'standby' | 'normal' | 'alert'
 
@@ -19,6 +20,7 @@ const states: Record<MonitorState, { label: string; temperature?: string }> = {
 export default function Page() {
   const [monitorState, setMonitorState] = useState<MonitorState>('standby')
   const [databaseConnected, setDatabaseConnected] = useState<boolean | null>(null)
+  const {temperatura} = useMQTT("10.56.2.30", "1883") 
 
   useEffect(() => {
     let active = true
@@ -127,3 +129,5 @@ function StateButton({ active, onClick, icon, label }: { active: boolean; onClic
 function StandbyVisual() { return <div className="relative flex size-36 items-center justify-center rounded-full border-2 border-dashed border-[#a9b8ad] text-[#597064]"><ScanFace className="size-16 stroke-[1.25]" /><span className="absolute -bottom-3 rounded-full bg-[#f8faf7] px-3 text-xs font-semibold uppercase tracking-widest">Acércate</span></div> }
 function NormalVisual() { return <div className="flex size-28 items-center justify-center rounded-full bg-[#d8f1c9] text-[#378d3d]"><Hand className="size-14 animate-pulse stroke-[1.5]" /></div> }
 function AlertVisual() { return <div className="flex size-28 items-center justify-center rounded-full bg-[#ffd6d0] text-[#ce3d36]"><AlertTriangle className="size-14 animate-pulse stroke-[1.5]" /></div> }
+
+
