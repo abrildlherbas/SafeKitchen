@@ -23,6 +23,7 @@ export default function Page() {
   const {temperatura} = useMQTT("10.56.2.30", "1883") 
 
   useEffect(() => {
+    console.log(temperatura)
     let active = true
     const checkConnection = async () => {
       try {
