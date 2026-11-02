@@ -11,19 +11,33 @@ import { useMQTT } from '@/hooks/useMQTT'
 
 type MonitorState = 'standby' | 'normal' | 'alert'
 
-const states: Record<MonitorState, { label: string; temperature?: string }> = {
-  standby: { label: 'Esperando lectura' },
-  normal: { label: 'Temperatura normal', temperature: '36.5°C' },
-  alert: { label: 'Temperatura elevada', temperature: '38.5°C' },
-}
-
 export default function Page() {
   const [monitorState, setMonitorState] = useState<MonitorState>('standby')
+  const [currentTemp, setCurrentTemp] = useState<string>('36.5°C')
   const [databaseConnected, setDatabaseConnected] = useState<boolean | null>(null)
-  const {temperatura} = useMQTT("10.56.2.30", "1883") 
+  
+  const { temperatura } = useMQTT("10.56.2.30", "9001") 
 
   useEffect(() => {
-    console.log(temperatura)
+    if (temperatura !== null && temperatura !== undefined) {
+      console.log("Temperatura MQTT recibida en página:", temperatura)
+      const tempNum = Number(temperatura)
+
+      if (!isNaN(tempNum) && tempNum > 0) {
+        setCurrentTemp(`${tempNum.toFixed(1)}°C`)
+
+        if (tempNum >= 38.0) {
+          setMonitorState('alert')
+        } else {
+          setMonitorState('normal')
+        }
+      } else {
+        setMonitorState('standby')
+      }
+    }
+  }, [temperatura])
+
+  useEffect(() => {
     let active = true
     const checkConnection = async () => {
       try {
@@ -36,6 +50,12 @@ export default function Page() {
     checkConnection()
     return () => { active = false }
   }, [])
+
+  const states: Record<MonitorState, { label: string; temperature?: string }> = {
+    standby: { label: 'Esperando lectura' },
+    normal: { label: 'Temperatura normal', temperature: currentTemp },
+    alert: { label: 'Temperatura elevada', temperature: currentTemp },
+  }
 
   const current = states[monitorState]
 
@@ -130,5 +150,3 @@ function StateButton({ active, onClick, icon, label }: { active: boolean; onClic
 function StandbyVisual() { return <div className="relative flex size-36 items-center justify-center rounded-full border-2 border-dashed border-[#a9b8ad] text-[#597064]"><ScanFace className="size-16 stroke-[1.25]" /><span className="absolute -bottom-3 rounded-full bg-[#f8faf7] px-3 text-xs font-semibold uppercase tracking-widest">Acércate</span></div> }
 function NormalVisual() { return <div className="flex size-28 items-center justify-center rounded-full bg-[#d8f1c9] text-[#378d3d]"><Hand className="size-14 animate-pulse stroke-[1.5]" /></div> }
 function AlertVisual() { return <div className="flex size-28 items-center justify-center rounded-full bg-[#ffd6d0] text-[#ce3d36]"><AlertTriangle className="size-14 animate-pulse stroke-[1.5]" /></div> }
-
-
