@@ -3,8 +3,10 @@ import { useEffect, useState, useRef } from 'react';
 import mqtt, { MqttClient } from 'mqtt';
 
 export function useMQTT(host: string, port: string) {
-  const [temperatura, cambiarTemperatura] = useState<string | null>(null)
+  const [temperatura, cambiarTemperatura] = useState<number>(0)
+  const [conectadoAlBrokerMQTT, cambiarEstadoDeLaConexionAlBroker] = useState<boolean>(false)
   let clienteMqtt = useRef<MqttClient | null>(null)
+
 
   useEffect(() => {
     // Nos conectamos por WebSockets al broker
@@ -14,19 +16,20 @@ export function useMQTT(host: string, port: string) {
       console.log("Conectados por WebSocket al broker MQTT")
       
       // 1. IMPORTANTE: Acá nos suscribimos al canal donde publica la terminal o el sensor
-      clienteMqtt.current?.subscribe("safe-kitchen/temperatura", (err) => {
+      clienteMqtt.current?.subscribe("raspberry/sensor/temperatura", (err) => {
         if (!err) {
-          console.log("Suscrito correctamente al tópico safe-kitchen/temperatura")
+          console.log("Suscrito correctamente al tópico raspberry/sensor/temperatura")
+          cambiarEstadoDeLaConexionAlBroker(true)
         }
       })
     })
 
     // 2. Escuchamos cuando llega un mensaje nuevo desde el broker
-    clienteMqtt.current.on("message", (topic, message) => {
-      if (topic === "safe-kitchen/temperatura") {
-        const valorTemp = message.toString()
-        console.log("Mensaje MQTT recibido:", valorTemp)
-        cambiarTemperatura(valorTemp)
+    clienteMqtt.current.on("message", (topico, mensaje) => {
+      if (topico === "raspberry/sensor/temperatura") {
+        const temperaturaComoString = mensaje.toString()
+        console.log("Mensaje MQTT recibido:", temperaturaComoString)
+        cambiarTemperatura(Number(temperaturaComoString))
       }
     })
 
@@ -35,5 +38,5 @@ export function useMQTT(host: string, port: string) {
     }
   }, [host, port]) 
 
-  return { temperatura }
+  return { temperatura , conectadoAlBrokerMQTT}
 }

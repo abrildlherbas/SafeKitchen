@@ -13,29 +13,28 @@ type MonitorState = 'standby' | 'normal' | 'alert'
 
 export default function Page() {
   const [monitorState, setMonitorState] = useState<MonitorState>('standby')
-  const [currentTemp, setCurrentTemp] = useState<string>('36.5°C')
   const [databaseConnected, setDatabaseConnected] = useState<boolean | null>(null)
   
-  const { temperatura } = useMQTT("10.56.2.30", "9001") 
+  const { temperatura, conectadoAlBrokerMQTT } = useMQTT("10.56.2.30", "9001") 
 
-  useEffect(() => {
-    if (temperatura !== null && temperatura !== undefined) {
-      console.log("Temperatura MQTT recibida en página:", temperatura)
-      const tempNum = Number(temperatura)
+  // useEffect(() => {
+  //   if (temperatura !== null && temperatura !== undefined) {
+  //     console.log("Temperatura MQTT recibida en página:", temperatura)
+  //     const tempNum = Number(temperatura)
 
-      if (!isNaN(tempNum) && tempNum > 0) {
-        setCurrentTemp(`${tempNum.toFixed(1)}°C`)
+  //     if (!isNaN(tempNum) && tempNum > 0) {
+  //       setCurrentTemp(`${tempNum.toFixed(1)}°C`)
 
-        if (tempNum >= 38.0) {
-          setMonitorState('alert')
-        } else {
-          setMonitorState('normal')
-        }
-      } else {
-        setMonitorState('standby')
-      }
-    }
-  }, [temperatura])
+  //       if (tempNum >= 38.0) {
+  //         setMonitorState('alert')
+  //       } else {
+  //         setMonitorState('normal')
+  //       }
+  //     } else {
+  //       setMonitorState('standby')
+  //     }
+  //   }
+  // }, [temperatura])
 
   useEffect(() => {
     let active = true
@@ -50,11 +49,16 @@ export default function Page() {
     checkConnection()
     return () => { active = false }
   }, [])
+  
+    useEffect(()=>{
+      setMonitorState( temperatura < 36.0? "standby": temperatura >= 36.0 && temperatura < 37.0? "normal": "alert")
+     }, [temperatura]) 
 
-  const states: Record<MonitorState, { label: string; temperature?: string }> = {
+
+  const states: Record<MonitorState, { label: string; temperature?: number}> = {
     standby: { label: 'Esperando lectura' },
-    normal: { label: 'Temperatura normal', temperature: currentTemp },
-    alert: { label: 'Temperatura elevada', temperature: currentTemp },
+    normal: { label: 'Temperatura normal', temperature: temperatura },
+    alert: { label: 'Temperatura elevada', temperature: temperatura },
   }
 
   const current = states[monitorState]
@@ -92,7 +96,7 @@ export default function Page() {
                   <div className={`flex size-3 rounded-full ${monitorState === 'alert' ? 'bg-[#df4b43]' : monitorState === 'normal' ? 'bg-[#5bb64c]' : 'bg-[#a8b5aa]'}`} />
                   <span className="text-sm font-bold uppercase tracking-[0.16em] text-[#59675e]">{current.label}</span>
                 </div>
-                {current.temperature && <span className="font-mono text-sm font-semibold text-[#536159]">LECTURA ACTUAL</span>}
+                { conectadoAlBrokerMQTT && <span className="font-mono text-sm font-semibold text-[#536159]">LECTURA ACTUAL</span>}
               </div>
 
               <div className="flex flex-1 flex-col items-center justify-center px-6 py-10 text-center sm:px-12">
