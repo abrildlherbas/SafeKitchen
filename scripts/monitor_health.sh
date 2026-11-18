@@ -6,12 +6,20 @@ echo "=========================================="
 echo "Verificando salud del sistema SafeKitchen..."
 echo "=========================================="
 
-# 1. Verificar contenedores de Docker
+# 1. Verificar contenedores de Docker generales
 if [ -f "docker-compose.yml" ]; then
-    if docker compose ps --status running | grep -q "Up"; then
+    if docker compose ps --status running --format "{{.Name}}" | grep -q "safe-kitchen-grafana"; then
         echo "[✔] Contenedores Docker OK"
     else
         echo "[✖] ALERTA: Los contenedores Docker están detenidos."
+        FALLO=1
+    fi
+    
+    # 1.1 Verificar específicamente que Grafana esté corriendo
+    if [ "$(docker inspect -f '{{.State.Running}}' safe-kitchen-grafana 2>/dev/null)" = "true" ]; then
+        echo "[✔] Contenedor de Grafana OK (Puerto 3001)"
+    else
+        echo "[✖] ALERTA: El contenedor de Grafana (safe-kitchen-grafana) está detenido."
         FALLO=1
     fi
 fi
