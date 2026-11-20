@@ -1,0 +1,37 @@
+{
+  "title": "SafeKitchen - Temperatura en Vivo",
+  "uid": "safekitchen-temp",
+  "timezone": "browser",
+  "refresh": "5s",
+  "time": { "from": "now-15m", "to": "now" },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Temperatura del Sensor (°C)",
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 0 },
+      "datasource": { "type": "prometheus", "uid": "Prometheus" },
+      "targets": [
+        {
+          "expr": "safekitchen_temperatura",
+          "legendFormat": "Temperatura (°C)",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "celsius",
+          "min": 35.5,
+          "max": 39.5,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 38 }
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
